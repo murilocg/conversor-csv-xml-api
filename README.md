@@ -1,19 +1,97 @@
-# Conversor de CSV para XML
-Lambdas para converter arquivos CSV em XML e salvar no banco de dados. O repositório contém duas funções: parser e enhancement. A função parser é incializada toda vez que um arquivo CSV e criado em um bucket especifico; converte o CSV em XML; armazena o arquivo convertido em outro bucket. A função enhancement é inicalizada toda vez que um arquivo XML é criado em um bucket especifico; transforma o arquivo em objetos; envia esses dados para a smart-sight-api.
+# Conversor from CSV to XML
 
-## Requisitos
-- Serverless (Latest)
+On some occasions, we need to parse a file from one type to another. This REST API converts CSV files into XML files, allowing the user to create your own rules to validate each field from the CSV.
+
+## Requirements
 - AWS CLI (Latest)
 - NodeJS (12.x)
 
-## Preparando o ambiente
-Antes de começar o desenvolvimento precisamos configurar o ambiente. Certifique-se que todos os requisitos foram instalados.
-Configure o cli da AWS com as credenciais devidas [AWS Configure](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html#cli-quick-configuration)
+## Starting the application
+To start the application execute the command `yarn && yarn start`. The application will start in the port 4000 by default.
 
-Faça login no serverless [Serverless Login](https://serverless.com/framework/docs/providers/aws/cli-reference/login/)
+## Examples of use
 
-### Variaveis de Ambiente
-O arquivo secrets.json contém todas as variáveis de ambiente que serão utilizadas nas funções. Atualize os valores delas antes de realizar o deploy.
+To convert a file, you'll need to do a POST on the path http://localhost:4000/converter of the API. The body of the post needs to have the following structure:
+```json
+{
+    "source": {
+        "type": "fs",
+        "path": "/database",
+        "fileName": "test.csv"
+    },
+    "rules": [
+        {
+            "field": "Age",
+            "operator": "lte",
+            "value": 26
+        },{
+             "field": "Name",
+             "operator": "notNull"
+        }
+    ]
+}
+```
+The field 'source' specifies which type of file handler will be used. Currently, we've two types: 'fs' and 's3'. The second field, 'rules', specifies the validations that we want to each column.
 
-## Realizando Deploy
-Para publicar as funções basta executar o commando `serverless deploy` na raiz do repositório. Lembre-se que as credenciais do AWS cli precisam estar configurados. Caso queira publicar apenas uma função execute o comando `serverless deploy function -f functionName`. [Serverless Deploy Function](https://serverless.com/framework/docs/providers/aws/cli-reference/deploy-function/)
+## Sources types
+
+Source | Description
+--- | ---
+fs | File handler to the local file system. This type needs to receive the parameters "path" and "fileName" .
+s3 | Reads and writes files into s3 buckets. This type needs to receive the fields "bucketKey" and "fileKey".
+
+### Example FS
+```json
+{
+    "source": {
+        "type": "fs",
+        "path": "/database",
+        "fileName": "test.csv"
+    },
+    "rules": [
+        {
+            "field": "Age",
+            "operator": "lte",
+            "value": 26
+        },{
+             "field": "Name",
+             "operator": "notNull"
+        }
+    ]
+}
+```
+### Example S3
+```json
+{
+    "source": {
+        "type": "s3",
+        "bucketKey": "s3-bucket-example-converter",
+        "fileKey": "test.csv"
+    },
+    "rules": [
+        {
+            "field": "Age",
+            "operator": "lte",
+            "value": 26
+        },{
+             "field": "Name",
+             "operator": "notNull"
+        }
+    ]
+}
+```
+
+## Rules Types
+To apply the rules you'll need specify in which column, which operator, and the value, in most cases.
+
+Rule | Description
+--- | ---
+gt |  Validates if the value of the field is greater than a limit, need to provide the "value".
+gte | Validates if the value of the field is greather or equals to a limit, need to provide the "value".
+lt | validates if the value of the field is less than a limit, need to provide the "value".
+lte | validates if the value of the field is less or equals to a limit, need to provide the "value".
+eq | validates if the value of the field is equals to a value, need to provide the "value".
+contains | validates if the value of the field contains a value, need to provide the "value".
+ew |  validates if the value of the field ends with a value, need to provide the "value".
+sw |  validates if the value of the field starts with a value, need to provide the "value".
+notNull | validates if the value of the field is not null.
