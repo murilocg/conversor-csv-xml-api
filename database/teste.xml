@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<root>
+  <valids count="2">
+    <item line="0">
+      <Nome>Murilo</Nome>
+      <Idade>26</Idade>
+      <Sexo>Masculino</Sexo>
+    </item>
+    <item line="0">
+      <Nome>Mariela</Nome>
+      <Idade>24</Idade>
+      <Sexo>Feminino</Sexo>
+    </item>
+  </valids>
+  <invalids/>
+</root>
